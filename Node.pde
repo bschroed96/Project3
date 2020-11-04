@@ -21,6 +21,9 @@ public class Node {
   public Node() {
     neighborNodes = new ArrayList<Integer>();
   }
+  public Node(Vec2 pos) {
+    this.pos = pos;
+  }
   
   public Node(float x, float y) {
     pos = new Vec2(-1,-1);

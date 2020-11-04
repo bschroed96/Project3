@@ -4,7 +4,7 @@ public class Obstacle {
   
   public Obstacle() {
     pos = new Vec2(random(1080 - rad*2 - 10)+1, random(720 - rad - 10)+1);
-    rad = random(50) + 10;
+    rad = random(70) + 20;
   }
   
   public Vec2 getPos() {

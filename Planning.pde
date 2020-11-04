@@ -7,11 +7,12 @@ int numObs = 40;
 Obstacle allObstacles[] = new Obstacle[numObs];
 
 // Nodes
-static float cSpace = 2;
+static float cSpace = 10;
 static int numNodes = 30;
 static int minNodeDist = 5;
 ArrayList<Node> allNodes = new ArrayList<Node>();
 PriorityQueue<Node> fringe;
+int nodeRad = 2;
 
 // path planning
 ArrayList<Integer> out;
@@ -57,13 +58,13 @@ void draw() {
     fill(0,0,0);
     circle(allObstacles[i].getPos().x, 
            allObstacles[i].getPos().y, 
-           allObstacles[i].getRad()*2);
+           allObstacles[i].getRad()*2 - 2*cSpace);
   }
   // Start node
   fill(0,255,255);
   circle(allNodes.get(startNode).getPos().x, 
          allNodes.get(startNode).getPos().y, 
-         cSpace*10);
+         cSpace*2);
          
   fill(255);
   circle(agent.pos.x, agent.pos.y, 10*2);
@@ -86,38 +87,74 @@ void draw() {
   fill(255,250,0);
   circle(allNodes.get(endNode).getPos().x, 
          allNodes.get(endNode).getPos().y, 
-         cSpace*5);
-  for (int i = 1; i < numNodes-1; i++){
-    fill(0,0,0);
-    circle(allNodes.get(i).getPos().x, 
-           allNodes.get(i).getPos().y, 
-           cSpace*2);
-  }
-
-  for (int i = 0; i < numNodes; i++){
-    for (int j = 0; j < allNodes.get(i).getNeighbors().size(); j++){
-      fill(0,0,0);
-      strokeWeight(.1);
-      stroke(100,100,100);
-      line(allNodes.get(i).getPos().x, allNodes.get(i).getPos().y, 
-           allNodes.get(allNodes.get(i).getNeighbors().get(j)).getPos().x,
-           allNodes.get(allNodes.get(i).getNeighbors().get(j)).getPos().y);
-    }
-  }
+         cSpace*2);
+         
+  //// render all nodes
+  //for (int i = 1; i < numNodes-1; i++){
+  //  fill(0,0,0);
+  //  circle(allNodes.get(i).getPos().x, 
+  //         allNodes.get(i).getPos().y, 
+  //         nodeRad*2);
+  //}
   
-  for (int i = 0; i < out.size(); i++){
-    fill(0,0,255);
-    circle(allNodes.get(out.get(i)).getPos().x,
-           allNodes.get(out.get(i)).getPos().y,
-           5);
-  }
+  //// render all edges
+  //for (int i = 0; i < numNodes; i++){
+  //  for (int j = 0; j < allNodes.get(i).getNeighbors().size(); j++){
+  //    fill(0,0,0);
+  //    strokeWeight(.1);
+  //    stroke(100,100,100);
+  //    line(allNodes.get(i).getPos().x, allNodes.get(i).getPos().y, 
+  //         allNodes.get(allNodes.get(i).getNeighbors().get(j)).getPos().x,
+  //         allNodes.get(allNodes.get(i).getNeighbors().get(j)).getPos().y);
+  //  }
+  //}
+  
+  // reset sim if no solution on graph was found
+    if (out.get(0) < 0) {
+      println("no Solution found");
+      // just make new graph if no solution
+      allObstacles = new Obstacle[numObs];
+      allNodes = new ArrayList<Node>();
+      first = true;
+      moveAgent = false;
+      prevDirectionNode = 0;
+      setup();
+    }
+  // render solution path nodes
+  //for (int i = 0; i < out.size(); i++){
+  //  fill(0,0,255);
+  //  circle(allNodes.get(out.get(i)).getPos().x,
+  //         allNodes.get(out.get(i)).getPos().y,
+  //         5);
+  //}
   
 }
 
 // update agent position
 void update(float dt) {
+  hitInfo intersect = new hitInfo();
+  int indexOfFurthestPathNode = -1;
+  for (int i = 0; i < out.size(); i++){
+    intersect = agentIntersectsObs(agent, out.get(i));
+    if (!intersect.hit) {
+      indexOfFurthestPathNode = i;  // highest i value represents the furthest index of path node which can be reached from current agent position
+    }
+  }
+  
+  //worst case, we need to completely reach the path at index i. So, we can set the prevDirectioNode to i, and directionNode to i + 1
+  if (indexOfFurthestPathNode >= 0) {
+    directionNode = indexOfFurthestPathNode;
+    Vec2 dir = allNodes.get(out.get(directionNode)).getPos().minus(agent.pos);
+    dir.normalize();
+    
+    dir.setToLength(40);
+    agent.vel = dir;
+    agent.pos.add(agent.vel.times(dt));
+  }
+  
   // special case for first node
-  if (!first) {
+  else if (!first) {
+    
     Vec2 dir = allNodes.get(out.get(directionNode)).getPos().minus(allNodes.get(out.get(prevDirectionNode)).getPos());
     dir.normalize();
     
@@ -125,6 +162,7 @@ void update(float dt) {
     agent.vel = dir;
     agent.pos.add(agent.vel.times(dt));
   } else {
+    
     Vec2 dir = allNodes.get(out.get(directionNode)).getPos().minus(allNodes.get(prevDirectionNode).getPos());
     dir.normalize();
     
@@ -148,4 +186,21 @@ void keyPressed() {
   if (key == ' '){
    moveAgent = !moveAgent; 
   }
+}
+
+public hitInfo agentIntersectsObs(Agent agent, int nextNode){
+  Vec2 dir = allNodes.get(nextNode).getPos().minus(agent.pos);
+  float dist = allNodes.get(nextNode).getPos().distanceTo(agent.pos);
+  dir.normalize();
+  hitInfo stillIntersects = new hitInfo();
+  
+  for (int i = 0; i < numObs; i++){
+    stillIntersects = rayCircleIntersect(allObstacles[i].getPos(),
+                       allObstacles[i].getRad(),
+                       agent.pos,
+                       dir,
+                       dist);
+    if (stillIntersects.hit){break;}
+  }
+  return stillIntersects;
 }
