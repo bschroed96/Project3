@@ -3,12 +3,12 @@ import java.util.*;  // priority queue
 
 // Obstacles
 static int maxObs = 100;
-int numObs = 40;
+int numObs = 50;
 Obstacle allObstacles[] = new Obstacle[numObs];
 
 // Nodes
 static float cSpace = 10;
-static int numNodes = 30;
+static int numNodes = 100;
 static int minNodeDist = 5;
 ArrayList<Node> allNodes = new ArrayList<Node>();
 PriorityQueue<Node> fringe;
@@ -80,10 +80,15 @@ public void addAgent(int start, int end){
     
     if (pOut.get(0) < 0) {
       println("no Solution found for new agent. Try again.");
+      println("pOut was : " + pOut);
       // just make new graph if no solution
       int ind = startNodes.size() - 1; // get last element in list and try new node
-      int s = (int)random(numNodes-1)+1;
-      int e = (int)random(numNodes-2)+3;      
+      int s = (int)random(numNodes-1)+0;
+      int e = (int)random(numNodes-1)+0;
+      while (s == e) {
+        s = (int)random(numNodes-1)+0;
+        e = (int)random(numNodes-1)+0;
+      }
       startNodes.set(ind, s);
       endNodes.set(ind, e);
       addAgent(s, e);

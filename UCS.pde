@@ -3,7 +3,13 @@
 
 public ArrayList<Integer> UniformCostSearch(int startNode, int goalNode) {
   fringe = new PriorityQueue<Node> (10, new NodeComparator());
-  
+  // need to reset allNodes for each search
+  for (int i = 0; i < numNodes; i++){
+    allNodes.get(i).setPrevNode(-1);
+    allNodes.get(i).resetVisited();
+    allNodes.get(i).resetDistFromStart(0);
+    allNodes.get(i).resetFringe();
+  }
   // The start node has no previous node
   allNodes.get(startNode).setPrevNode(-2);
   int prevNode = startNode;

@@ -94,12 +94,20 @@ public class Node {
     visited = true;
   }
   
+  public void resetVisited(){
+    visited = false;
+  }
+  
   public boolean getVisited() {
     return visited;
   }
   
   public void setFringe() {
     fringe = true;
+  }
+  
+  public void resetFringe() {
+    fringe = false;
   }
   
   public boolean getFringe() {
