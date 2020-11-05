@@ -81,6 +81,12 @@ public ArrayList<Integer> UniformCostSearch(int startNode, int goalNode) {
   while(allNodes.get(curNode.getIndex()).getPrevNode() != -2) {
     path.add(curNode.getIndex());
     curNode = allNodes.get(curNode.getPrevNode());
+    // resolves cases where paths become much too long/looping in graph. Not sure why...
+    if (path.size() > numNodes - 1){
+      path = new ArrayList<Integer>();
+      path.add(-2);
+      return path;
+    }
   }
   // reverse path order
   ArrayList<Integer> finalPath= new ArrayList<Integer>();

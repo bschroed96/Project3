@@ -16,15 +16,26 @@ int nodeRad = 2;
 
 // path planning
 ArrayList<Integer> out;
-int startNode = 0;
+int startNode = 1;
 int endNode = 4;
 int prevDirectionNode = startNode;
 int directionNode = -1; // used as the node to direct agent if -1, we didn't find a path
 boolean first = true;
+ArrayList<ArrayList<Integer>> paths = new ArrayList<ArrayList<Integer>>(); // array of arrays. The arrays represent solutions
 
 // Agent info
 boolean moveAgent = false; // for starting agent to move along path
 Agent agent; 
+ArrayList<Agent> agents;
+
+// Multi Agent global data
+ArrayList<Integer> dirNode = new ArrayList<Integer>();
+ArrayList<Integer> preDirNode = new ArrayList<Integer>();
+ArrayList<Agent> a = new ArrayList<Agent>();
+ArrayList<Boolean> firsts = new ArrayList<Boolean>();
+ArrayList<Integer> startNodes = new ArrayList<Integer>();
+ArrayList<Integer> endNodes = new ArrayList<Integer>();
+
 
 // setup our frame
 void setup(){
@@ -40,16 +51,49 @@ void setup(){
   // find all valid neighbors and populate their neighbor lists
   generateAllNeighbors();
   
-  // Run uniform cost search
-  out = UniformCostSearch(startNode, endNode);
-  print(out);
-  // set our direction node to be the first node to visit from start
-  directionNode = 0;
+  //// Run uniform cost search
+  //out = UniformCostSearch(startNode, endNode);
+  //print(out);
   
-  // Create agent corresponding to the start position
-  // by assigning agent to just the pos vector, we only get reference and changes made to agent change the position of the node
-  agent = new Agent(new Vec2 (allNodes.get(startNode).getPos().x, allNodes.get(startNode).getPos().y));
+  //// Run Uniform cost search and save to list of paths
+  //paths.add(out);
+  //dirNode.add(0);
+  //a.add(new Agent(new Vec2 (allNodes.get(startNode).getPos().x, allNodes.get(startNode).getPos().y)));
+  //firsts.add(true);
+  startNodes.add(startNode);
+  endNodes.add(endNode);
+  addAgent(startNode, endNode);
   
+}
+
+public void addAgent(int start, int end){
+  ArrayList<Integer> pOut = new ArrayList<Integer>();
+  pOut = UniformCostSearch(start, end);
+    // reset sim if no solution on graph was found
+    
+    //for (int i = 0; i < paths.size(); i++){
+    //  if (paths.get(i).get(0) < 0){
+    //    println("invalid Solution");
+    //    reset();
+    //  }
+    //}
+    
+    if (pOut.get(0) < 0) {
+      println("no Solution found for new agent. Try again.");
+      // just make new graph if no solution
+      int ind = startNodes.size() - 1; // get last element in list and try new node
+      int s = (int)random(numNodes-1)+1;
+      int e = (int)random(numNodes-2)+3;      
+      startNodes.set(ind, s);
+      endNodes.set(ind, e);
+      addAgent(s, e);
+    } else {
+        paths.add(pOut);
+        print(paths);
+        dirNode.add(0);
+        a.add(new Agent(new Vec2 (allNodes.get(start).getPos().x, allNodes.get(start).getPos().y)));
+        firsts.add(true);
+    }
 }
 
 void draw() {
@@ -65,29 +109,38 @@ void draw() {
   circle(allNodes.get(startNode).getPos().x, 
          allNodes.get(startNode).getPos().y, 
          cSpace*2);
-         
-  fill(255);
-  circle(agent.pos.x, agent.pos.y, 10*2);
-         
+  
+  for (int i = 0; i < a.size(); i++) {
+    fill(255);
+    circle(a.get(i).pos.x, a.get(i).pos.y, 10*2);
+  }
+  
   if (moveAgent) {
-    if (agent.pos.distanceTo(allNodes.get(out.get(directionNode)).getPos()) < 1) {
-      if (directionNode >= out.size() - 1) {}// dont update pos we are at goal
-      else {
-        first = false;
-        prevDirectionNode = directionNode;
-        directionNode += 1;
-        update(1/frameRate);
-      }
-    } else {
-      update(1/frameRate);
+    for (int i = 0; i < startNodes.size(); i++){
+      moveAgents(i);
     }
   }
+  //if (moveAgent) {
+  //  if (agent.pos.distanceTo(allNodes.get(out.get(directionNode)).getPos()) < 1) {
+  //    if (directionNode >= out.size() - 1) {}// dont update pos we are at goal
+  //    else {
+  //      first = false;
+  //      prevDirectionNode = directionNode;
+  //      directionNode += 1;
+  //      update(1/frameRate);
+  //    }
+  //  } else {
+  //    update(1/frameRate);
+  //  }
+  //}
    
   // goal node
-  fill(255,250,0);
-  circle(allNodes.get(endNode).getPos().x, 
-         allNodes.get(endNode).getPos().y, 
-         cSpace*2);
+  for (int i = 0; i < endNodes.size(); i++){
+    fill(255,250,0);
+    circle(allNodes.get(endNodes.get(i)).getPos().x, 
+           allNodes.get(endNodes.get(i)).getPos().y, 
+           cSpace*2);
+  }
          
   //// render all nodes
   //for (int i = 1; i < numNodes-1; i++){
@@ -109,17 +162,12 @@ void draw() {
   //  }
   //}
   
-  // reset sim if no solution on graph was found
-    if (out.get(0) < 0) {
-      println("no Solution found");
-      // just make new graph if no solution
-      allObstacles = new Obstacle[numObs];
-      allNodes = new ArrayList<Node>();
-      first = true;
-      moveAgent = false;
-      prevDirectionNode = 0;
-      setup();
-    }
+  //// reset sim if no solution on graph was found
+  //  if (out.get(0) < 0) {
+  //    println("no Solution found");
+  //    // just make new graph if no solution
+  //    reset();
+  //  }
   // render solution path nodes
   //for (int i = 0; i < out.size(); i++){
   //  fill(0,0,255);
@@ -128,6 +176,73 @@ void draw() {
   //         5);
   //}
   
+}
+
+// generalized version wihch will update a specific agent based on local data passed, not global data
+void moveAgents(int index){
+  //println(a.get(index).pos);
+  //println(paths.get(index));
+  //println(paths);
+  //println(allNodes.get(paths.get(index).get(0)));
+    if (a.get(index).pos.distanceTo(allNodes.get(paths.get(index).get(dirNode.get(index))).getPos()) < 1) {
+      if (dirNode.get(index) >= paths.get(index).size() - 1) {}// dont update pos we are at goal
+      else {
+        firsts.set(index, false);
+        if (preDirNode.size() <= 0) {
+          preDirNode.add(dirNode.get(index));
+        } else {
+          preDirNode.set(index, dirNode.get(index));
+        }
+        dirNode.set(index, dirNode.get(index) + 1);
+        updateAgent(1/frameRate, index, paths.get(index));
+      }
+    } else {
+      updateAgent(1/frameRate, index, paths.get(index));
+    }
+}
+    
+// dirNode and preDirNode need to be kept in arrays to hold updated values
+// if path, dirNode, preDirNode, a, and firsts are globals, don't need to pass to func. only index and dt
+// path needs to be paths.get(index)
+void updateAgent(float dt, int index, ArrayList<Integer> path) { // index of which agent we are updating
+  hitInfo intersect = new hitInfo();
+  int indexOfFurthestPathNode = -1;
+  for (int i = 0; i < path.size(); i++){
+    intersect = agentIntersectsObs(a.get(index), path.get(i));
+    if (!intersect.hit) {
+      indexOfFurthestPathNode = i;  // highest i value represents the furthest index of path node which can be reached from current agent position
+    }
+  }
+  
+  //worst case, we need to completely reach the path at index i. So, we can set the prevDirectioNode to i, and directionNode to i + 1
+  if (indexOfFurthestPathNode >= 0) {
+    dirNode.set(index, indexOfFurthestPathNode);
+    Vec2 dir = allNodes.get(path.get(dirNode.get(index))).getPos().minus(a.get(index).pos);
+    dir.normalize();
+    
+    dir.setToLength(40);
+    a.get(index).vel = dir;
+    a.get(index).pos.add(a.get(index).vel.times(dt));
+  }
+  
+  // special case for first node
+  else if (!firsts.get(index)) {
+    
+    Vec2 dir = allNodes.get(path.get(dirNode.get(index))).getPos().minus(allNodes.get(path.get(preDirNode.get(index))).getPos());
+    dir.normalize();
+    
+    dir.setToLength(40);
+    a.get(index).vel = dir;
+    a.get(index).pos.add(a.get(index).vel.times(dt));
+  } else {
+    
+    Vec2 dir = allNodes.get(path.get(dirNode.get(index))).getPos().minus(allNodes.get(preDirNode.get(index)).getPos());
+    dir.normalize();
+    
+    dir.setToLength(40);
+    a.get(index).vel = dir;
+    a.get(index).pos.add(a.get(index).vel.times(dt));
+  }
 }
 
 // update agent position
@@ -175,16 +290,18 @@ void update(float dt) {
 
 void keyPressed() {
   if (key == 'r'){ 
-    // need to reset all values and undraw current graph config
-    allObstacles = new Obstacle[numObs];
-    allNodes = new ArrayList<Node>();
-    first = true;
-    moveAgent = false;
-    prevDirectionNode = 0;
-    setup();
+    reset();
   }
   if (key == ' '){
    moveAgent = !moveAgent; 
+  }
+  
+  if (key == 'a') {
+    int start = (int)random(numNodes-1)+1;
+    int end = (int)random(numNodes-2)+3;
+    startNodes.add(start);
+    endNodes.add(end);
+    addAgent(start, end);
   }
 }
 
@@ -203,4 +320,21 @@ public hitInfo agentIntersectsObs(Agent agent, int nextNode){
     if (stillIntersects.hit){break;}
   }
   return stillIntersects;
+}
+
+public void reset() {
+      // need to reset all values and undraw current graph config
+    allObstacles = new Obstacle[numObs];
+    allNodes = new ArrayList<Node>();
+    
+    // reset all list items
+    dirNode = new ArrayList<Integer>();
+    preDirNode = new ArrayList<Integer>();
+    a = new ArrayList<Agent>();
+    firsts = new ArrayList<Boolean>();
+    paths = new ArrayList<ArrayList<Integer>>();
+    moveAgent = false;
+    startNodes = new ArrayList<Integer>();
+    endNodes= new ArrayList<Integer>();
+    setup();
 }

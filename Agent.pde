@@ -11,6 +11,4 @@ public class Agent {
     acc = new Vec2(0,0);
     node = new Node(this.pos);
   }
-  
-  
 }
