@@ -38,8 +38,8 @@ public void addAgent(int start, int end){
       addAgent(s, e);
     } else {
         paths.add(pOut);
-        print(paths);
-        println("the prevDirNode size in add agent is: " + preDirNode.size());
+        //print(paths);
+        //println("the prevDirNode size in add agent is: " + preDirNode.size());
         dirNode.add(0);
         a.add(new Agent(new Vec2 (allNodes.get(start).getPos().x, allNodes.get(start).getPos().y)));
         firsts.add(true);

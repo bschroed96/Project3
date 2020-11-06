@@ -97,7 +97,7 @@ void draw() {
    
   // goal node
   for (int i = 0; i < endNodes.size(); i++){
-    fill(255,250,0);
+    fill(0);
     circle(allNodes.get(endNodes.get(i)).getPos().x, 
            allNodes.get(endNodes.get(i)).getPos().y, 
            cSpace*2);
