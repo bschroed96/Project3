@@ -2,6 +2,7 @@
 // uses the previousNode structure in Node class
 
 public ArrayList<Integer> UniformCostSearch(int startNode, int goalNode) {
+  println("start node of UCS is : " + startNode + "end node is : " + goalNode);
   fringe = new PriorityQueue<Node> (10, new NodeComparator());
   // need to reset allNodes for each search
   for (int i = 0; i < numNodes; i++){
@@ -76,6 +77,7 @@ public ArrayList<Integer> UniformCostSearch(int startNode, int goalNode) {
   ArrayList<Integer> path = new ArrayList<Integer>();
   // fail to find path return -1
   if (curNode.getIndex() != goalNode) {
+    println("not finding a path for some reason");
     path.add(-1);
     return path;
   } else {

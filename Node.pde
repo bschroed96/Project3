@@ -136,7 +136,7 @@ public class Node {
       if (allNodes.get(i) == this) {continue;} // need to continue when comparing to self
       Node curNode = allNodes.get(i);
       for (int j = 0; j < numObs; j++){
-        Obstacle curObs = allObstacles[j];
+        Obstacle curObs = allObs.get(j);
         Vec2 dir = curNode.getPos().minus(this.pos).normalized();
         float dist = this.pos.distanceTo(curNode.getPos());
         hit = rayCircleIntersect(curObs.getPos(),
@@ -154,6 +154,10 @@ public class Node {
     
     return neighborNodes;
   }
+  
+    public void resetNeighbors() {
+      neighborNodes = new ArrayList<Integer>();
+    }
   
   
 }
@@ -181,7 +185,7 @@ public ArrayList<Node> generateRandomNodes(int nodes, ArrayList<Node> list) {
   for (int i = 0; i < nodes; i++){
     Node randNode = new Node(random(1080) + 1, random(720) + 1, i);
     boolean nodesIntersect = checkNodeNodeCollision(list, randNode);
-    while (checkObsCollision(allObstacles, randNode) || nodesIntersect) {
+    while (checkObsCollision(allObs, randNode) || nodesIntersect) {
       randNode = new Node(random(1078) + 1, random(718) + 1, i);
       nodesIntersect = checkNodeNodeCollision(list, randNode);
     }
@@ -192,10 +196,10 @@ public ArrayList<Node> generateRandomNodes(int nodes, ArrayList<Node> list) {
 
 // Check for collisions with obstacles
 
-public boolean checkObsCollision(Obstacle obslist[], Node point) {
+public boolean checkObsCollision(ArrayList<Obstacle> obslist, Node point) {
   for (int i = 0; i < numObs; i++){
-    float dist = point.getPos().distanceTo((obslist[i].getPos()));
-    if (dist < (obslist[i].getRad() + cSpace)){
+    float dist = point.getPos().distanceTo((obslist.get(i).getPos()));
+    if (dist < (obslist.get(i).getRad() + cSpace)){
       return true;
     }
   }
@@ -221,4 +225,17 @@ public void generateAllNeighbors() {
   for (int i = 0; i < numNodes; i++){
     allNodes.get(i).findNeighbors();
   }
+}
+
+// reset all neighbors
+public void resetAllNeighbors() {
+  for (int i = 0; i < numNodes; i++){
+    allNodes.get(i).resetNeighbors();
+  }
+}
+
+// Create a new node and attach to graph
+public void addNode(float x , float y) {
+  allNodes.add(new Node(x, y, numNodes));
+  numNodes+=1;
 }
