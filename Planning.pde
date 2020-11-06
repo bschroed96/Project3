@@ -1,15 +1,19 @@
 import java.util.*;  // priority queue
+// image assets
+PImage bg;
+PImage bubbles;
+PImage saw;
 
 
 // Obstacles
 static int maxObs = 100;
-int numObs = 50;
+int numObs = 10;
 Obstacle allObstacles[] = new Obstacle[numObs];
 ArrayList<Obstacle> allObs = new ArrayList<Obstacle>();
 
 // Nodes
 static float cSpace = 10;
-static int numNodes = 10;
+static int numNodes = 100;
 static int minNodeDist = 5;
 ArrayList<Node> allNodes = new ArrayList<Node>();
 PriorityQueue<Node> fringe;
@@ -38,15 +42,20 @@ ArrayList<Integer> startNodes = new ArrayList<Integer>();
 ArrayList<Integer> endNodes = new ArrayList<Integer>();
 
 // booleans for environemtn control
+boolean showEdges = false;
 boolean addOb = false;
 boolean addAg = false;
+boolean moveObs = false;
 int numClicks = 0; // This is for adding agents, first click is agent, second click is new goal. 
 Vec2 startEndPos[] = new Vec2[2];
 
 // setup our frame
 void setup(){
   surface.setTitle("Agent Planning" + frameCount);
-  size(1080, 720);
+  size(1081, 721);
+  bg = loadImage("background.png");
+  bubbles = loadImage("bubbles.png");
+  saw = loadImage("saw.png");
   
   // initialize obstacles
   generateRandomObs();
@@ -64,17 +73,20 @@ void setup(){
 }
 
 void draw() {
-  background(200);
+  background(bg);
   for(int i = 0; i < numObs; i++) {
-    fill(0,0,0);
-    circle(allObs.get(i).getPos().x, 
-           allObs.get(i).getPos().y, 
-           allObs.get(i).getRad()*2 - 2*cSpace);
+    //fill(0,0,0);
+    //circle(allObs.get(i).getPos().x, 
+    //       allObs.get(i).getPos().y, 
+    //       allObs.get(i).getRad()*2 - 2*cSpace);
+    float rad = allObs.get(i).getRad() - cSpace;
+    image(saw, allObs.get(i).getPos().x - rad, allObs.get(i).getPos().y - rad, allObs.get(i).getRad()*2 - 2*cSpace, allObs.get(i).getRad()*2 - 2*cSpace);
   }
   
   for (int i = 0; i < a.size(); i++) {
-    fill(255);
-    circle(a.get(i).pos.x, a.get(i).pos.y, 10*2);
+    // fill(255);
+    // circle(a.get(i).pos.x, a.get(i).pos.y, 10*2);
+    image(bubbles, a.get(i).pos.x - cSpace, a.get(i).pos.y - cSpace, cSpace*2, cSpace*2);
   }
   
   if (moveAgent) {
@@ -92,7 +104,9 @@ void draw() {
   }
   
   // renderNodes();
-  renderEdges();
+  if (showEdges) {
+    renderEdges();
+  }
   //renderSolution();
 }
 
@@ -188,6 +202,24 @@ void mousePressed() {
    } 
 }
 
+void mouseDragged() {
+   if (moveObs) {
+     int index = -1;
+     for (int i = 0; i < numObs; i++){
+       if (clickedObs(allObs.get(i))) {
+         index = i;
+         break;
+       }
+     }
+     if(mousePressed && index >= 0) {
+       allObs.get(index).setPos(mouseX, mouseY);
+       resetAllNeighbors();
+       generateAllNeighbors();
+       updateAgentPaths();
+   }
+   }
+}
+
 
 void keyPressed() {
   if (key == 'r'){ 
@@ -197,14 +229,29 @@ void keyPressed() {
    moveAgent = !moveAgent; 
   }
   
+  // allow for click and add agent
   if (key == 'o') {
     addOb = !addOb;
     addAg = false;
+    moveObs = false;
   }
   
+  // add agent and goal by clicking twice
   if (key == 'i') {
     addAg = !addAg;
     addOb = false;
+    moveObs = false;
+  }
+  
+  if (key == 'e') {
+    showEdges = !showEdges;
+  }
+  
+  // allow for clicking obs and moving them realtime. agent will update accordingly
+  if (key == 'm') {
+    moveObs = !moveObs;
+    addOb = false;
+    addAg = false;
   }
   
   if (key == 'a') {

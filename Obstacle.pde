@@ -9,7 +9,7 @@ public class Obstacle {
   
   public Obstacle(float x, float y) {
     pos = new Vec2(x, y);
-    rad = 30;
+    rad = random(30) + 30;
   }
   
   public Vec2 getPos() {
@@ -18,6 +18,11 @@ public class Obstacle {
   
   public float getRad() {
     return rad;
+  }
+  
+  public void setPos(float x, float y){
+    pos.x = x;
+    pos.y = y;
   }
 }
 
@@ -49,4 +54,13 @@ public void addObstacle(float x, float y) {
   allObs.add(new Obstacle(x,y));
   numObs += 1;
   generateAllNeighbors();
+}
+
+public boolean clickedObs(Obstacle obs) {
+  float x = mouseX;
+  float y = mouseY;
+  Vec2 mousePos = new Vec2(x, y);
+  float dist = mousePos.distanceTo(obs.getPos());
+  float rad = obs.getRad();
+  return (dist <  rad - cSpace);
 }

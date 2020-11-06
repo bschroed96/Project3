@@ -122,14 +122,7 @@ void updateAgent(float dt, int index, ArrayList<Integer> path) { // index of whi
     dir.setToLength(40);
     a.get(index).vel = dir;
     a.get(index).pos.add(a.get(index).vel.times(dt));
-  } else {
-    Vec2 dir = allNodes.get(path.get(dirNode.get(index))).getPos().minus(allNodes.get(preDirNode.get(index)).getPos());
-    dir.normalize();
-    
-    dir.setToLength(40);
-    a.get(index).vel = dir;
-    a.get(index).pos.add(a.get(index).vel.times(dt));
-  }
+  } 
 }
 
 // generalized version wihch will update a specific agent based on local data passed, not global data
